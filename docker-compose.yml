@@ -67,7 +67,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./mcp_server/data:./data
+      - ./mcp_server/data:/app/data
     environment:
       - NODE_ENV=production
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}

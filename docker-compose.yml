@@ -17,7 +17,7 @@ services:
       timeout: 10s
       retries: 3
     command: >
-      bash -c "
+      /bin/sh -c "
         ollama serve &
         sleep 5 &&
         ollama pull mistral &&

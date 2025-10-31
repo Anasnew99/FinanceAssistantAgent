@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  # 🧠 Ollama (with Mistral)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_KEEP_ALIVE=10m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      bash -c "
+        ollama serve &
+        sleep 5 &&
+        ollama pull mistral &&
+        wait
+      "
+
+  # ⚙️ n8n (auto copy workspace)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASS}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_ENCRYPTION_KEY=${N8N_KEY}
+      - GENERIC_TIMEZONE=Asia/Kolkata
+    depends_on:
+      - ollama
+    volumes:
+      - ./n8n/workflows:/mnt/workflows
+    entrypoint: >
+      bash -c "
+       echo '🔄 Copying workspace...';
+        mkdir -p /home/node/.n8n;
+        cp -r /mnt/n8n_original/* /home/node/.n8n/ 2>/dev/null || true;
+        echo '✅ Workspace ready.';
+        echo '📥 Importing workflow(s) if not already present...';
+        for wf in /mnt/workflows/*.json; do
+          if [ -f \"$wf\" ]; then
+            n8n import:workflow --input=\"$wf\" || true;
+          fi
+        done;
+        echo '🚀 Starting n8n...';
+        n8n start
+      "
+
+  # 🔌 MCP Server (Node.js)
+  mcp:
+    build: ./mcp-server
+    container_name: mcp-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./mcp_server/data:./data
+    environment:
+      - NODE_ENV=production
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_URL=http://ollama:11434
+      - PORT=3000
+    depends_on:
+      - ollama

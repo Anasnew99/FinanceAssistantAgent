@@ -1,0 +1,189 @@
+{
+  "name": "Finance Manager bot",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "name": "Send Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        352,
+        480
+      ],
+      "id": "9a9007dc-8028-4546-9821-be6aca9ab441",
+      "webhookId": "3db241b4-4cc9-4b55-8795-65fa0d2d7566",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoUflp865Zjqnj2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        496
+      ],
+      "id": "106f06cc-d466-437b-b9e1-9b194ad733b7",
+      "name": "Telegram Trigger",
+      "webhookId": "dfa1308a-615a-4b13-af81-9d31b1846f8c",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoUflp865Zjqnj2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=\n\nYou are a smart financial assistant that helps users manage their money.\nYour core tasks include:\n\nUpdating the ledger (recording transactions)\n\nShowing borrowing and lending histories\n\nDisplaying summaries of all balances\n\nManaging and tracking investments\n\nTransaction Logic\n\nWhen a user says something like “Ammar borrowed Rs 15”:\n\nFetch all users.\n\nCheck whether “Ammar” exists.\n\nIf a matching user is found, use that user ID to record the transaction.\n\nIf no user is found, ask whether to create a new user.\n\nIf multiple matches are found, ask which account to use before proceeding.\n\nInvestment Logic\n\nWhen a user says something like “I bought gold”:\n\nFetch all investments.\n\nCheck for an investment labeled “gold.”\n\nIf found, use the investment ID to record the transaction.\n\nIf not found, ask whether to create a new investment category.\n\nAlways confirm ambiguous cases with the user before taking action.\n\nOn mcp tool call send ownerid as {{ $json.message.from.id }}\n\nAlso on /start, send a welcome message to owner, his name is  {{ $json.message.chat.first_name }}and explain what you do.\n\nDate on which message is sent is {{ $json.message.date }} in utc seconds"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        480
+      ],
+      "id": "38dea07a-599a-4c84-8243-3f9ad8c1416e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3000/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        720
+      ],
+      "id": "f5401325-0f94-4825-b4ca-68a3b454f1fb",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        736
+      ],
+      "id": "b1e8886f-daf6-4f03-83b6-9ac901f0cccc",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "n8n-track-476619",
+          "mode": "list",
+          "cachedResultName": "n8n-track"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        720
+      ],
+      "id": "c30d2548-4c4e-4621-98ed-a0b984409d13",
+      "name": "Google Vertex Chat Model",
+      "credentials": {
+        "googleApi": {
+          "id": "385IN8InfVkl347n",
+          "name": "Google Service Account account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5cf33065-ca9a-45fc-91b4-7de2ec9ab18a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "324dd3114bd3acdc45bf9f58c5a057aa901b909da3bac11a216d15a35adc9122"
+  },
+  "id": "ffHOVEeanIBqInzP",
+  "tags": []
+}

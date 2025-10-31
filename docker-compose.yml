@@ -16,13 +16,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    command: >
-      /bin/sh -c "
-        ollama serve &
-        sleep 5 &&
-        ollama pull mistral &&
-        wait
-      "
+    # command: >
+    #   /bin/sh -c "
+    #     ollama serve &
+    #     sleep 5 &&
+    #     ollama pull mistral &&
+    #     wait
+    #   "
 
   # ⚙️ n8n (auto copy workspace)
   n8n:
@@ -73,5 +73,6 @@ services:
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_URL=http://ollama:11434
       - PORT=3000
+      - TRANSPORT=http
     depends_on:
       - ollama

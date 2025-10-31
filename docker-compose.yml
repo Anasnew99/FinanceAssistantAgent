@@ -44,19 +44,19 @@ services:
     volumes:
       - ./n8n/workflows:/mnt/workflows
     entrypoint: >
-      bash -c "
-       echo '🔄 Copying workspace...';
-        mkdir -p /home/node/.n8n;
-        cp -r /mnt/n8n_original/* /home/node/.n8n/ 2>/dev/null || true;
-        echo '✅ Workspace ready.';
-        echo '📥 Importing workflow(s) if not already present...';
-        for wf in /mnt/workflows/*.json; do
-          if [ -f \"$wf\" ]; then
-            n8n import:workflow --input=\"$wf\" || true;
-          fi
-        done;
-        echo '🚀 Starting n8n...';
-        n8n start
+      sh -c "
+      echo '🔄 Copying workspace...';
+      mkdir -p /home/node/.n8n;
+      cp -r /mnt/n8n_original/* /home/node/.n8n/ 2>/dev/null || true;
+      echo '✅ Workspace ready.';
+      echo '📥 Importing workflow(s) if not already present...';
+      for wf in /mnt/workflows/*.json; do
+        if [ -f \"$wf\" ]; then
+          n8n import:workflow --input=\"$wf\" || true;
+        fi
+      done;
+      echo '🚀 Starting n8n...';
+      n8n start
       "
 
   # 🔌 MCP Server (Node.js)

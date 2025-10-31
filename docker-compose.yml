@@ -10,10 +10,12 @@ services:
       - "5678:5678"
     environment:
       - N8N_PORT=5678
+      - N8N_HOST=0.0.0.0
       - N8N_ENCRYPTION_KEY=${N8N_KEY}
+      # - N8N_HOST=${DOMAIN}
+      # - N8N_PROTOCOL=https
+      # - N8N_WEBHOOK_URL=https://${DOMAIN}/webhook/n8n
       - GENERIC_TIMEZONE=Asia/Kolkata
-    depends_on:
-      - ollama
     volumes:
       - ./n8n/workflows:/mnt/workflows
       - ./n8n/data:/home/node/.n8n

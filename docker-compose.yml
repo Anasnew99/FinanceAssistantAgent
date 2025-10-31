@@ -76,3 +76,27 @@ services:
       - TRANSPORT=http
     depends_on:
       - ollama
+
+  
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certbot:/var/www/certbot
+      - ./nginx/certs:/etc/letsencrypt
+    depends_on:
+      - n8n
+    command: ["/bin/sh", "-c", "nginx -g 'daemon off;'"]
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/certbot:/var/www/certbot
+      - ./nginx/certs:/etc/letsencrypt
+    entrypoint: /bin/sh
